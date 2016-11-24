@@ -1,0 +1,32 @@
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Twitter Discord Bot.exe.config
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter Discord Bot.csprojResolveAssemblyReference.cache
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Twitter Discord Bot.exe
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Twitter Discord Bot.pdb
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Autofac.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Discord.Net.Commands.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Discord.Net.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Microsoft.Threading.Tasks.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Microsoft.Threading.Tasks.Extensions.Desktop.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Microsoft.Threading.Tasks.Extensions.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Newtonsoft.Json.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Nito.AsyncEx.Concurrent.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Nito.AsyncEx.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Nito.AsyncEx.Enlightenment.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\RestSharp.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\System.Net.Http.Extensions.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\System.Net.Http.Primitives.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Tweetinvi.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\WebSocket4Net.dll
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Autofac.xml
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Microsoft.Threading.Tasks.xml
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Microsoft.Threading.Tasks.Extensions.xml
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Microsoft.Threading.Tasks.Extensions.Desktop.xml
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Newtonsoft.Json.xml
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Nito.AsyncEx.xml
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Nito.AsyncEx.Concurrent.xml
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Nito.AsyncEx.Enlightenment.xml
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\RestSharp.xml
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\System.Net.Http.Extensions.xml
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\System.Net.Http.Primitives.xml
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter Discord Bot.exe
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter Discord Bot.pdb
