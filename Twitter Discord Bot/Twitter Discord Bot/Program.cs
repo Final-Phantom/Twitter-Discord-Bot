@@ -9,11 +9,20 @@ using Tweetinvi.Models;
 using Tweetinvi.Credentials;
 using Tweetinvi.Core;
 using Tweetinvi.Streams;
+using Tweetinvi.Events;
+using Tweetinvi.Streaming;
+using Tweetinvi.Security;
+using Tweetinvi.Parameters;
+using Tweetinvi.Logic;
+using Tweetinvi.Json;
+using Tweetinvi.Controllers;
+using Tweetinvi.Exceptions;
+using Tweetinvi.WebLogic;
 using Discord;
 using Discord.Commands;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
-using System.IO;
+//using System.IO;
 using System.Diagnostics;
 using System.Xml;
 
@@ -34,6 +43,8 @@ namespace Twitter_Discord_Bot
                 x.LogHandler = Log;
             });
 
+            Navigate();
+
             _client.UsingCommands(x =>
             {
                 x.PrefixChar = '!';
@@ -41,20 +52,20 @@ namespace Twitter_Discord_Bot
                 x.HelpMode = HelpMode.Public;
             });
 
-            Navigate();
+            
 
             CreateCommands();
 
             _client.ExecuteAndWait(async () =>
             {
-                string XML = Path.GetFullPath("Tokens.xml");
-                XmlDocument doc = new XmlDocument();
-                doc.Load(XML);
-                string DiscordToken = doc.ChildNodes.Item(1).InnerText.ToString();
+                //string XML = Path.GetFullPath("Tokens.xml");
+                //XmlDocument doc = new XmlDocument();
+                //doc.Load(XML);
+                //string DiscordToken = doc.ChildNodes.Item(1).InnerText.ToString();
 
                 try
                 {
-                    await _client.Connect(DiscordToken, TokenType.Bot);
+                    await _client.Connect("MjQwNzUyMDgxOTI4MDYwOTI4.Cvy1UQ.wmqwZri4SqxkUSpcI4Evc099Ja0", TokenType.Bot);
                 }
                 catch (Exception)
                 {
@@ -88,67 +99,120 @@ namespace Twitter_Discord_Bot
                 .Description("Tracks a Twitter User")
                 .Do(async (e) =>
                 {
-                    await e.Channel.SendMessage("Tracking " + e.GetArg("User"));
+                    decimal Number;
+                    var Target = Tweetinvi.User.GetUserFromScreenName(e.GetArg("User"));
+                    long DecimalUser = Convert.ToInt64(e.GetArg("User"));
 
-                    long User = Convert.ToInt64(e.GetArg("User"));
-                    var Stream = Tweetinvi.Stream.CreateFilteredStream();
-                    Stream.AddFollow(User);
-                    Stream.MatchingTweetReceived += (sender, args) =>
+                    IFilteredStream Stream = Tweetinvi.Stream.CreateFilteredStream();
+
+                    if (Decimal.TryParse(e.GetArg("User"), out Number))
                     {
-                        Console.WriteLine("Found Tweet");
-                        e.Channel.SendMessage(e.GetArg("User") + " " + args.Tweet);
-                    };
-                    await Stream.StartStreamMatchingAllConditionsAsync();
+                        await e.Channel.SendMessage("Tracking" + Tweetinvi.User.GetUserFromId(Convert.ToInt64(e.GetArg("User"))));
 
+                        await e.Channel.SendMessage("Tracking " + e.GetArg("User"));
+
+                        Stream.AddFollow(DecimalUser);
+                        Stream.MatchingTweetReceived += (sender, args) =>
+                        {
+                            Console.WriteLine("Found Tweet");
+                            e.Channel.SendMessage(e.GetArg("User") + " " + args.Tweet);
+                        };
+                        await Stream.StartStreamMatchingAllConditionsAsync();
+
+                    } else
+                    {
+                        await e.Channel.SendMessage("Tracking" + Tweetinvi.User.GetUserFromScreenName(e.GetArg("User")));
+
+                        Stream.AddFollow(Target);
+                        Stream.MatchingTweetReceived += (sender, args) =>
+                        {
+                            Console.WriteLine("Found Tweet");
+                            e.Channel.SendMessage(e.GetArg("User") + " " + args.Tweet);
+                        };
+                        await Stream.StartStreamMatchingAllConditionsAsync();
+                    }
+                    
+                    
+
+                    
+                    
                 });
 
-            CService.CreateCommand("Sample")
-                .Parameter("User", ParameterType.Unparsed)
-                .Description("Tracks a Twitter User")
-                .Do( (e) =>
+            CService.CreateCommand("test")
+                .Do(async (e) =>
                 {
+                    var test = Stream.CreateSampleStream();
 
-                    SampleStream(e);
-                    
+                    Console.WriteLine(test.StreamState);
+                    await e.Channel.SendMessage(test.StreamState.ToString());
+
+                    test.TweetReceived += (sender, args) => {
+
+                        e.Channel.SendMessage(args.Tweet.Text.ToString());
+                        Console.WriteLine(args.Tweet.Text);
+
+                    };
+                    test.StartStream();
+                    Console.WriteLine(test.StreamState);
                 });
         }
 
-        public void SampleStream(CommandEventArgs e)
+        public async Task SampleStream(CommandEventArgs e)
         {
 
             
+
             //var th = new Thread(() =>
             //{
 
-                e.Channel.SendMessage("Starting Sample Stream");
-                Console.WriteLine("Starting Sample Stream");
-
-                var stream = Tweetinvi.Stream.CreateSampleStream();
-                Console.WriteLine(stream.StreamState.ToString());
-                stream.TweetReceived += (sender, args) =>
-                {
-
-                    Console.WriteLine(args.Tweet);
-
-                };
-                stream.StartStreamAsync();
-                Console.WriteLine(stream.StreamState.ToString());
-
-                /*
-                var stream = Tweetinvi.Stream.CreateSampleStream();
-
-                stream.TweetReceived += (sender, args) =>
+            /*
+            await e.Channel.SendMessage("Starting Sample Stream");
+            Console.WriteLine("Starting Sample Stream");
+            var stream = Tweetinvi.Stream.CreateSampleStream();
+            stream.DisconnectMessageReceived += (sender, args) =>
             {
-                Console.WriteLine("Found Tweet");
-                Console.WriteLine(args.Tweet);
-                Console.WriteLine(sender.ToString());
-                e.Channel.SendMessage(args.Tweet.ToString());
+                Console.WriteLine("Disconnected unexpectedly");
+                e.Channel.SendMessage("Disconnected unexpectedly");
             };
+            await e.Channel.SendMessage(stream.StreamState.ToString());
+
+            stream.TweetReceived += (sender, args) =>
+            {
+                e.Channel.SendMessage(args.Tweet.ToString());
+                Console.WriteLine(args.Tweet);
+
+            };
+
+            stream.StreamStopped += (sender, args) =>
+            {
+                Console.WriteLine(args.DisconnectMessage.Reason);
+                Console.WriteLine("Stream Stopped Resetting");
+                e.Channel.SendMessage("Stream Stopped Resetting");
                 stream.StartStream();
-                */
+            };
+            stream.StartStream();
+            await e.Channel.SendMessage(stream.StreamState.ToString());
+            stream.ResumeStream();
+            stream.StallWarnings = false;
+            await e.Channel.SendMessage(stream.StreamState.ToString());
+            */
+
+            /*
+            var stream = Tweetinvi.Stream.CreateSampleStream();
+
+            stream.TweetReceived += (sender, args) =>
+        {
+            Console.WriteLine("Found Tweet");
+            Console.WriteLine(args.Tweet);
+            Console.WriteLine(sender.ToString());
+            e.Channel.SendMessage(args.Tweet.ToString());
+        };
+            stream.StartStream();
+            */
 
             //});
             //th.Start();
+
         }
 
 
