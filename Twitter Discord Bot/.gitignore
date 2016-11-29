@@ -3,6 +3,7 @@
 
 #Custom Ignores
 [Tt]okens.xml
+[Tt]onfig.xml
 
 # User-specific files
 *.suo
