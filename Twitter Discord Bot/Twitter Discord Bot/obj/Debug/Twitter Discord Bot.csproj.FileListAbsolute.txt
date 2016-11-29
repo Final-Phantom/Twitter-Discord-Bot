@@ -34,3 +34,6 @@ D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter D
 D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Twitter Discord Bot.application
 D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter Discord Bot.exe.manifest
 D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter Discord Bot.application
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter_Discord_Bot.Properties.Resources.resources
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter Discord Bot.csproj.GenerateResource.Cache
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter Discord Bot.TrustInfo.xml

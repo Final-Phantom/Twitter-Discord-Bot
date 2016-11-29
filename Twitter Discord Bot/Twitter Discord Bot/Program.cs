@@ -46,7 +46,7 @@ namespace Twitter_Discord_Bot
                     string DiscordToken = doc.ChildNodes.Item(1).ChildNodes.Item(1).InnerText.ToString();
 
                     await _client.Connect(DiscordToken, TokenType.Bot);
-                } catch (FileNotFoundException ex)
+                } catch (FileNotFoundException)
                 {
                     if (GenXml == false)
                     {
@@ -79,21 +79,39 @@ namespace Twitter_Discord_Bot
             IFilteredStream FilteredStream = Tweetinvi.Stream.CreateFilteredStream();
             ISampleStream SampleStream = Tweetinvi.Stream.CreateSampleStream();
 
+            CService.CreateCommand("StreamState")
+                .Description("Gets the states of the streams")
+                .Do(async (e) =>
+                {
+                    await e.Channel.SendMessage("```Sample Stream: " + SampleStream.StreamState + Environment.NewLine + "Filtered Stream: " + FilteredStream.StreamState + "```");
+                });
+
             CService.CreateCommand("PurgeStreams")
+                .Alias("Kill", "Stop", "PS")
                 .Description("Hopefully stops the stream")
-                .Do((e) =>
+                .Do(async (e) =>
                {
                    FilteredStream.StopStream();
                    SampleStream.StopStream();
-                   e.Channel.SendMessage("```Sample Stream: " + SampleStream.StreamState + Environment.NewLine + "Filtered Stream: " + FilteredStream.StreamState + "```");
+                   FilteredStream.ClearTracks();
+                   await e.Channel.SendMessage("```Sample Stream: " + SampleStream.StreamState + Environment.NewLine + "Filtered Stream: " + FilteredStream.StreamState + "```");
                });
 
             CService.CreateCommand("StopSampleStream")
                 .Description("Stops all sample streams")
-                .Do((e) =>
+                .Do(async (e) =>
                {
                    SampleStream.StopStream();
+                   await e.Channel.SendMessage("```Sample Stream: " + SampleStream.StreamState + Environment.NewLine + "Filtered Stream: " + FilteredStream.StreamState + "```");
                });
+
+            CService.CreateCommand("StopFilteredStream")
+                .Description("Stops all Filtered streams")
+                .Do(async (e) =>
+                {
+                    FilteredStream.StopStream();
+                    await e.Channel.SendMessage("```Sample Stream: " + SampleStream.StreamState + Environment.NewLine + "Filtered Stream: " + FilteredStream.StreamState + "```");
+                });
 
             CService.CreateCommand("Track")
                 .Description("Tracks a twitter User Either from their ID or Handle")
@@ -112,6 +130,13 @@ namespace Twitter_Discord_Bot
                         FilteredStream.MatchingTweetReceived += (sender, args) =>
                         {
                             e.Channel.SendMessage(Target + " " + args.Tweet);
+                        };
+                        FilteredStream.StreamStopped += (sender, args) =>
+                        {
+                            var Exception = args.Exception;
+                            var DisconnectMessage = args.DisconnectMessage;
+                            e.Channel.SendMessage("Filtered stream ended exception: " + Exception + " Disconnect message: " + DisconnectMessage);
+                            
                         };
                         await FilteredStream.StartStreamMatchingAllConditionsAsync();
                     }
@@ -159,9 +184,6 @@ namespace Twitter_Discord_Bot
                 {
                     if (Regex.IsMatch(e.GetArg("Tweets"), @"-?\d+(\.\d+)?"))
                     {
-                        await e.Channel.SendMessage("Getting tweets");
-
-
                         int Tweets = Convert.ToInt32(e.GetArg("Tweets"));
                         await e.Channel.SendMessage("Transmitting " + e.GetArg("Tweets") + " Tweets");
 
@@ -177,6 +199,13 @@ namespace Twitter_Discord_Bot
                             {
                                 SampleStream.StopStream();
                             }
+                        };
+                        FilteredStream.StreamStopped += (sender, args) =>
+                        {
+                            var Exception = args.Exception;
+                            var DisconnectMessage = args.DisconnectMessage;
+                            e.Channel.SendMessage("Filtered stream ended exception: " + Exception + " Disconnect message: " + DisconnectMessage);
+
                         };
                         await SampleStream.StartStreamAsync();
                     }
@@ -298,7 +327,7 @@ namespace Twitter_Discord_Bot
                 if (!File.Exists(Path.GetFullPath("Config.xml")))
                 {
                     XmlWriterSettings Settings = new XmlWriterSettings();
-                    Settings.Encoding = System.Text.Encoding.UTF8;
+                    //Settings.Encoding = System.Text.Encoding.UTF8;
                     Settings.Indent = true;
 
                     // Generates a new Config file.
@@ -391,6 +420,7 @@ namespace Twitter_Discord_Bot
                                 IsFirstDocument = false;
                                 Authorize(AuthPin);
                                 CreateCommands();
+                                webBrowser1.Dispose();
 
                             }
                         }
@@ -445,6 +475,7 @@ namespace Twitter_Discord_Bot
                                 {
                                     IsFirstDocument = false;
                                     Authorize(AuthPin);
+                                    CreateCommands();
                                     webBrowser1.Dispose();
 
                                 }
