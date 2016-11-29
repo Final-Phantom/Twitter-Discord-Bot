@@ -30,3 +30,7 @@ D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter D
 D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\System.Net.Http.Primitives.xml
 D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter Discord Bot.exe
 D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter Discord Bot.pdb
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Twitter Discord Bot.exe.manifest
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\bin\Debug\Twitter Discord Bot.application
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter Discord Bot.exe.manifest
+D:\Users\hans2734\Source\Repos\Twitter Discord Bot\Twitter Discord Bot\Twitter Discord Bot\obj\Debug\Twitter Discord Bot.application

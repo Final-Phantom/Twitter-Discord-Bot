@@ -1,30 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Tweetinvi;
 using Tweetinvi.Models;
-using Tweetinvi.Credentials;
-using Tweetinvi.Core;
-using Tweetinvi.Streams;
-using Tweetinvi.Events;
 using Tweetinvi.Streaming;
-using Tweetinvi.Security;
-using Tweetinvi.Parameters;
-using Tweetinvi.Logic;
-using Tweetinvi.Json;
-using Tweetinvi.Controllers;
-using Tweetinvi.Exceptions;
-using Tweetinvi.WebLogic;
 using Discord;
 using Discord.Commands;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
-//using System.IO;
-using System.Diagnostics;
 using System.Xml;
+using System.IO;
 
 namespace Twitter_Discord_Bot
 {
@@ -52,30 +36,28 @@ namespace Twitter_Discord_Bot
                 x.HelpMode = HelpMode.Public;
             });
 
-            
-
-            CreateCommands();
-
             _client.ExecuteAndWait(async () =>
             {
-                //string XML = Path.GetFullPath("Tokens.xml");
-                //XmlDocument doc = new XmlDocument();
-                //doc.Load(XML);
-                //string DiscordToken = doc.ChildNodes.Item(1).InnerText.ToString();
-
                 try
                 {
-                    await _client.Connect("MjQwNzUyMDgxOTI4MDYwOTI4.Cvy1UQ.wmqwZri4SqxkUSpcI4Evc099Ja0", TokenType.Bot);
-                }
-                catch (Exception)
+                    string XML = Path.GetFullPath("Config.xml");
+                    XmlDocument doc = new XmlDocument();
+                    doc.Load(XML);
+                    string DiscordToken = doc.ChildNodes.Item(1).ChildNodes.Item(1).InnerText.ToString();
+
+                    await _client.Connect(DiscordToken, TokenType.Bot);
+                } catch (FileNotFoundException ex)
                 {
-                    Console.WriteLine("Something went wrong most likely the token you are using is invalid. Silly Human");
+                    if (GenXml == false)
+                    {
+                        GenerateXML();
+                    }
                 }
+                
             });
         }
 
-    
-
+        bool GenXml = false;
 
         public void Log(object sender, LogMessageEventArgs e)
         {
@@ -94,139 +76,152 @@ namespace Twitter_Discord_Bot
         {
             var CService = _client.GetService<CommandService>();
 
+            IFilteredStream FilteredStream = Tweetinvi.Stream.CreateFilteredStream();
+            ISampleStream SampleStream = Tweetinvi.Stream.CreateSampleStream();
+
+            CService.CreateCommand("PurgeStreams")
+                .Description("Hopefully stops the stream")
+                .Do((e) =>
+               {
+                   FilteredStream.StopStream();
+                   SampleStream.StopStream();
+                   e.Channel.SendMessage("```Sample Stream: " + SampleStream.StreamState + Environment.NewLine + "Filtered Stream: " + FilteredStream.StreamState + "```");
+               });
+
+            CService.CreateCommand("StopSampleStream")
+                .Description("Stops all sample streams")
+                .Do((e) =>
+               {
+                   SampleStream.StopStream();
+               });
+
             CService.CreateCommand("Track")
+                .Description("Tracks a twitter User Either from their ID or Handle")
                 .Parameter("User", ParameterType.Unparsed)
                 .Description("Tracks a Twitter User")
                 .Do(async (e) =>
                 {
-                    decimal Number;
-                    var Target = Tweetinvi.User.GetUserFromScreenName(e.GetArg("User"));
-                    long DecimalUser = Convert.ToInt64(e.GetArg("User"));
-
-                    IFilteredStream Stream = Tweetinvi.Stream.CreateFilteredStream();
-
-                    if (Decimal.TryParse(e.GetArg("User"), out Number))
+                    if (Regex.IsMatch(e.GetArg("User"), @"-?\d+(\.\d+)?"))
                     {
-                        await e.Channel.SendMessage("Tracking" + Tweetinvi.User.GetUserFromId(Convert.ToInt64(e.GetArg("User"))));
+                        long User = Convert.ToInt64(e.GetArg("User"));
+                        IUser Target = Tweetinvi.User.GetUserFromId(Convert.ToInt64(e.GetArg("User")));
 
-                        await e.Channel.SendMessage("Tracking " + e.GetArg("User"));
+                        await e.Channel.SendMessage("Tracking " + Tweetinvi.User.GetUserFromId(Convert.ToInt64(e.GetArg("User"))));
 
-                        Stream.AddFollow(DecimalUser);
-                        Stream.MatchingTweetReceived += (sender, args) =>
+                        FilteredStream.AddFollow(User);
+                        FilteredStream.MatchingTweetReceived += (sender, args) =>
                         {
-                            Console.WriteLine("Found Tweet");
-                            e.Channel.SendMessage(e.GetArg("User") + " " + args.Tweet);
+                            e.Channel.SendMessage(Target + " " + args.Tweet);
                         };
-                        await Stream.StartStreamMatchingAllConditionsAsync();
-
-                    } else
-                    {
-                        await e.Channel.SendMessage("Tracking" + Tweetinvi.User.GetUserFromScreenName(e.GetArg("User")));
-
-                        Stream.AddFollow(Target);
-                        Stream.MatchingTweetReceived += (sender, args) =>
-                        {
-                            Console.WriteLine("Found Tweet");
-                            e.Channel.SendMessage(e.GetArg("User") + " " + args.Tweet);
-                        };
-                        await Stream.StartStreamMatchingAllConditionsAsync();
+                        await FilteredStream.StartStreamMatchingAllConditionsAsync();
                     }
-                    
-                    
+                    else
+                    {
+                        var Target = Tweetinvi.User.GetUserFromScreenName(e.GetArg("User"));
 
-                    
-                    
+                        await e.Channel.SendMessage("Tracking " + Tweetinvi.User.GetUserFromScreenName(e.GetArg("User")));
+
+                        FilteredStream.AddFollow(Target);
+                        FilteredStream.MatchingTweetReceived += (sender, args) =>
+                        {
+                            Console.WriteLine("Found Tweet");
+                            e.Channel.SendMessage(e.GetArg("User") + " Tweeted " + args.Tweet);
+                        };
+                        await FilteredStream.StartStreamMatchingAllConditionsAsync();
+                    }
                 });
 
-            CService.CreateCommand("test")
+            CService.CreateCommand("Spam")
+                .Alias("Havoc", "Anton", "Cancer")
+                .Description("Initializes a socalled sample stream which returns 1% of all public tweets Discord will not show them all because of RateLimits.")
                 .Do(async (e) =>
                 {
-                    var test = Stream.CreateSampleStream();
+                    if (e.User.ServerPermissions.ManageServer == true)
+                    {
+                        SampleStream.TweetReceived += (sender, args) =>
+                        {
 
-                    Console.WriteLine(test.StreamState);
-                    await e.Channel.SendMessage(test.StreamState.ToString());
+                            e.Channel.SendMessage(args.Tweet.Text.ToString());
 
-                    test.TweetReceived += (sender, args) => {
+                        };
+                        await SampleStream.StartStreamAsync();
+                    }
+                    else
+                    {
+                        await e.Channel.SendMessage("ERROR most likely you do not have sufficient permissions");
+                    }
+                });
 
-                        e.Channel.SendMessage(args.Tweet.Text.ToString());
-                        Console.WriteLine(args.Tweet.Text);
+            CService.CreateCommand("Sample")
+                .Description("Initializes a socalled sample stream but instead of 1% its specified with an amount of random tweets, Neat!")
+                .Parameter("Tweets", ParameterType.Unparsed)
+                .Do(async (e) =>
+                {
+                    if (Regex.IsMatch(e.GetArg("Tweets"), @"-?\d+(\.\d+)?"))
+                    {
+                        await e.Channel.SendMessage("Getting tweets");
 
-                    };
-                    test.StartStream();
-                    Console.WriteLine(test.StreamState);
+
+                        int Tweets = Convert.ToInt32(e.GetArg("Tweets"));
+                        await e.Channel.SendMessage("Transmitting " + e.GetArg("Tweets") + " Tweets");
+
+                        int i = 0;
+                        SampleStream.TweetReceived += (sender, args) =>
+                        {
+                            i++;
+                            if (i < Tweets)
+                            {
+                                e.Channel.SendMessage(args.Tweet.Text.ToString());
+                            }
+                            else
+                            {
+                                SampleStream.StopStream();
+                            }
+                        };
+                        await SampleStream.StartStreamAsync();
+                    }
+                    else
+                    {
+                        await e.Channel.SendMessage("Error Invalid input");
+                    }
                 });
         }
-
-        public async Task SampleStream(CommandEventArgs e)
-        {
-
-            
-
-            //var th = new Thread(() =>
-            //{
-
-            /*
-            await e.Channel.SendMessage("Starting Sample Stream");
-            Console.WriteLine("Starting Sample Stream");
-            var stream = Tweetinvi.Stream.CreateSampleStream();
-            stream.DisconnectMessageReceived += (sender, args) =>
-            {
-                Console.WriteLine("Disconnected unexpectedly");
-                e.Channel.SendMessage("Disconnected unexpectedly");
-            };
-            await e.Channel.SendMessage(stream.StreamState.ToString());
-
-            stream.TweetReceived += (sender, args) =>
-            {
-                e.Channel.SendMessage(args.Tweet.ToString());
-                Console.WriteLine(args.Tweet);
-
-            };
-
-            stream.StreamStopped += (sender, args) =>
-            {
-                Console.WriteLine(args.DisconnectMessage.Reason);
-                Console.WriteLine("Stream Stopped Resetting");
-                e.Channel.SendMessage("Stream Stopped Resetting");
-                stream.StartStream();
-            };
-            stream.StartStream();
-            await e.Channel.SendMessage(stream.StreamState.ToString());
-            stream.ResumeStream();
-            stream.StallWarnings = false;
-            await e.Channel.SendMessage(stream.StreamState.ToString());
-            */
-
-            /*
-            var stream = Tweetinvi.Stream.CreateSampleStream();
-
-            stream.TweetReceived += (sender, args) =>
-        {
-            Console.WriteLine("Found Tweet");
-            Console.WriteLine(args.Tweet);
-            Console.WriteLine(sender.ToString());
-            e.Channel.SendMessage(args.Tweet.ToString());
-        };
-            stream.StartStream();
-            */
-
-            //});
-            //th.Start();
-
-        }
-
 
         public string Authorization()
         {
-            ITwitterCredentials AppCredentials = new TwitterCredentials("YY9hXL7YVeKoXhJxky09xAmXL", "C7r3eiTOYU016F7e2w2c0M8KsL0t3Y7nBZ61IB0kCvgGKIPpzD", "2558354432-gNeNcxDRR67W3t7ZNdx131PqcFyEPKPt5tBUdm9", "3bnuojT7cTVx295nXhK5ELnPbE4CRVSNMDwg7uhdmpAQO");
+            string ConsumerKey = null;
+            string ConsumerSecret = null;
+            string AccessToken = null;
+            string AccessSecret = null;
+            try
+            {
+                string XML = Path.GetFullPath("Config.xml");
+                XmlDocument doc = new XmlDocument();
+                doc.Load(XML);
+                ConsumerKey = doc.ChildNodes.Item(1).ChildNodes.Item(9).InnerText.ToString();
+                ConsumerSecret = doc.ChildNodes.Item(1).ChildNodes.Item(11).InnerText.ToString();
+                AccessToken = doc.ChildNodes.Item(1).ChildNodes.Item(13).InnerText.ToString();
+                AccessSecret = doc.ChildNodes.Item(1).ChildNodes.Item(15).InnerText.ToString();
+            }
+            catch (FileNotFoundException)
+            {
+                if (GenXml == false)
+                {
+                    GenerateXML();
+                }
+            }
 
-            var authenticationContext = AuthFlow.InitAuthentication(AppCredentials);
+            ITwitterCredentials AppCredentials = new TwitterCredentials(ConsumerKey, ConsumerSecret, AccessToken, AccessSecret);
 
-            string AuthUrl = authenticationContext.AuthorizationURL;
+                var authenticationContext = AuthFlow.InitAuthentication(AppCredentials);
 
-            AuthenticationContext = authenticationContext;
+                string AuthUrl = authenticationContext.AuthorizationURL;
 
-            return AuthUrl;
+                AuthenticationContext = authenticationContext;
+
+                return AuthUrl;
+
+            
         }
 
         IAuthenticationContext AuthenticationContext = null;
@@ -243,12 +238,43 @@ namespace Twitter_Discord_Bot
             var th = new Thread(() =>
             {
                 WebBrowser webBrowser1 = new WebBrowser();
+                webBrowser1.ScriptErrorsSuppressed = true;
 
                 if (IsFirstDocument == true)
                 {
-                    webBrowser1.DocumentCompleted += DocumentCompleted; //new WebBrowserDocumentCompletedEventHandler(DocumentCompleted);
+                    try
+                    {
+                        string XML = Path.GetFullPath("Config.xml");
+                        XmlDocument doc = new XmlDocument();
+                        doc.Load(XML);
+                        string YesNo = doc.ChildNodes.Item(1).ChildNodes.Item(3).InnerText.ToString();
 
-                    webBrowser1.Navigate(Authorization());
+                        if (YesNo == "True" | YesNo == "true")
+                        {
+                            webBrowser1.DocumentCompleted += ManualDocumentCompleted; //new WebBrowserDocumentCompletedEventHandler(DocumentCompleted);
+
+                            webBrowser1.Navigate(Authorization());
+                        }
+                        else if (YesNo == "False" | YesNo == "false")
+                        {
+                            webBrowser1.DocumentCompleted += AutoDocumentCompleted;
+
+                            webBrowser1.Navigate(Authorization());
+                        }
+                        else
+                        {
+                            Console.WriteLine("Something went wrong please make sure that you have specified which method of authentication you wish to use in the config");
+                        }
+                    } catch (FileNotFoundException)
+                    {
+                        if (GenXml == false)
+                        {
+                            GenerateXML();
+                        }
+                    }
+
+                    
+
                 }
 
                 Application.Run();
@@ -257,10 +283,80 @@ namespace Twitter_Discord_Bot
             th.Start();
         }
 
-        //string Username = Console.ReadLine();
-        //string Password = Console.ReadLine();
+        public void GenerateXML()
+        {
+            GenXml = true;
+            Console.WriteLine("Config.xml file not found do you wish to generate a new template");
+            Console.WriteLine("Y/N");
+            string key = Console.ReadLine();
+
+            // acknowlegdement with generating a new config.xml
+            if (key == "y" | key == "Y")
+            {
+
+                // If no Config file exists generate a new config.xml
+                if (!File.Exists(Path.GetFullPath("Config.xml")))
+                {
+                    XmlWriterSettings Settings = new XmlWriterSettings();
+                    Settings.Encoding = System.Text.Encoding.UTF8;
+                    Settings.Indent = true;
+
+                    // Generates a new Config file.
+                    using (XmlWriter Writer = XmlWriter.Create(Path.GetFullPath("Config.xml"), Settings))
+                    {
+
+                        Writer.WriteStartDocument();
+                        Writer.WriteStartElement("Config");
+
+                        Writer.WriteComment(" Enter DiscordToken Here you can create a Bot here https://discordapp.com/developers/applications/me");
+                        Writer.WriteElementString("DiscordToken", "InsertDiscordTokenHere");
+
+                        Writer.WriteComment(" True will enable Manual Login in the CommandLine, False will enable Username and Password fields for automatic login");
+                        Writer.WriteElementString("ManualAuth", "True/False");
+
+                        Writer.WriteComment(" Enter Twitter Username Here");
+                        Writer.WriteElementString("Username", "Twitter Username or email here");
+
+                        Writer.WriteComment(" Enter Twitter Password Here");
+                        Writer.WriteElementString("Password", "Twitter Password Here");
+
+                        Writer.WriteComment(" Enter Twitter Consumerkey here you can get a Twitter App here https://apps.twitter.com/");
+                        Writer.WriteElementString("Consumerkey", "Consumer key here");
+
+                        Writer.WriteComment(" Enter Twitter ConsumerSecret here");
+                        Writer.WriteElementString("ConsumerSecret", "Consumer Secret here");
+
+                        Writer.WriteComment(" Enter Twitter AccessToken Here");
+                        Writer.WriteElementString("AccessToken", "Access Token Here");
+
+                        Writer.WriteComment(" Enter Twitter AccessSecret here \t");
+                        Writer.WriteElementString("AccessSecret", "Access Secret here");
+
+                        Writer.WriteEndElement();
+                        Writer.WriteEndDocument();
+                    }
+
+                    Console.WriteLine("Config File Generated Please Restart Application");
+                    Console.WriteLine("Press any key to exit");
+                    Console.ReadKey();
+                    Environment.Exit(0);
+
+                }
+                else
+                {
+                    Console.WriteLine("ERROR Unknown Error has been detected please restart" + Environment.NewLine + "Press any key to continue");
+                    Console.ReadKey();
+                    Environment.Exit(0);
+                }
+            }
+            else if (key == "n" | key == "N")
+            {
+                Console.WriteLine("Program has met a fatal error and needs to restart please generate your own Config.xml");
+            }
+        }
+
         bool IsFirstDocument = true;
-        private void DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        private void ManualDocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
             var webBrowser1 = sender as WebBrowser;
 
@@ -294,6 +390,7 @@ namespace Twitter_Discord_Bot
                             {
                                 IsFirstDocument = false;
                                 Authorize(AuthPin);
+                                CreateCommands();
 
                             }
                         }
@@ -307,6 +404,67 @@ namespace Twitter_Discord_Bot
                 }
             }
         }
+
+        private void AutoDocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        {
+            try
+            {
+                string XML = Path.GetFullPath("Config.xml");
+                XmlDocument doc = new XmlDocument();
+                doc.Load(XML);
+                string Username = doc.ChildNodes.Item(1).ChildNodes.Item(5).InnerText.ToString();
+                string Password = doc.ChildNodes.Item(1).ChildNodes.Item(7).InnerText.ToString();
+
+                var webBrowser1 = sender as WebBrowser;
+
+                var username = webBrowser1.Document.GetElementById("username_or_email");
+                username?.SetAttribute("value", Username);
+
+                var password = webBrowser1.Document.GetElementById(@"session[password]");
+                password?.SetAttribute("value", Password);
+
+                var validate = webBrowser1.Document.GetElementById("allow");
+                validate?.InvokeMember("click");
+
+
+
+                string URL = webBrowser1.Document.Url.ToString();
+                Convert.ToString(URL);
+                if (IsFirstDocument == true)
+                {
+                    if (URL == "https://api.twitter.com/oauth/authorize")
+                    {
+                        try
+                        {
+                            string AuthPin = webBrowser1.Document.GetElementById("oauth_pin").InnerText;
+                            if (AuthPin != null)
+                            {
+                                bool isNumber = Regex.IsMatch(AuthPin, @"-?\d+(\.\d+)?");
+
+                                if (isNumber == true)
+                                {
+                                    IsFirstDocument = false;
+                                    Authorize(AuthPin);
+                                    webBrowser1.Dispose();
+
+                                }
+                            }
+
+
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(ex.ToString());
+                        }
+                    }
+                }
+            } catch (FileNotFoundException)
+            {
+                if (GenXml == false)
+                {
+                    GenerateXML();
+                }
+            }
+        }
     }
 }
-
